@@ -1,0 +1,8 @@
+{
+  "name": "nagomu.me",
+  "version": "0.0.1",
+  "repository": "git@github.com:nagomu/nagomu.me.git",
+  "author": "@nagomu",
+  "license": "MIT",
+  "private": true
+}
