@@ -24,7 +24,7 @@ export default () =>
         justify-content: center;
         margin: 0;
         color: #37474f;
-        background-color: #eceff1;
+        background-color: #f8f8f8;
         font-size: 100%;
       }
 
