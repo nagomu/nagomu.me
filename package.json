@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "next": "^8.0.3",
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4"
   },
   "devDependencies": {
     "now": "^14.1.0"
