@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "alias": "nagomu.me",
   "builds": [
     { "src": "next.config.js", "use": "@now/next" }
   ]
