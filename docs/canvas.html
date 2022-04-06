@@ -76,8 +76,8 @@ body {
 <script>
 const dpr = devicePixelRatio;
 let context = null;
-let ticking = false;
-let pendingPoints = [];
+let points = [];
+const strokeHistories = [];
 
 function createContext(canvas) {
   const rect = canvas.getBoundingClientRect();
@@ -86,44 +86,33 @@ function createContext(canvas) {
   canvas.width = width;
   canvas.height = height;
   context = canvas.getContext('2d');
-  context.lineWidth = 2 * dpr;
+  context.lineWidth = 1 * dpr;
 }
 
-function frameCallback() {
-  if (pendingPoints.length <= 1) return;
-
-  context.beginPath();
-
-  let first = false;
-  for (const { x, y } of pendingPoints) {
-    const realX = x * dpr;
-    const realY = y * dpr;
-    if (first) {
-      context.moveTo(realX, realY);
-      first = false;
-    } else {
-      context.lineTo(realX, realY);
-    }
+function draw(e) {
+  let x, y;
+  if (e.touches.length > 0) {
+    x = e.touches[0].pageX * 2;
+    y = e.touches[0].pageY * 2;
   }
+  points.push({ x, y });
 
-  context.stroke();
-
-  ticking = false;
-  pendingPoints = pendingPoints.slice(-1);
-}
-
-function tick() {
-  if (ticking) return;
-
-  ticking = true;
-  requestAnimationFrame(frameCallback);
-}
-
-function getTouch(e) {
-  for (const touch of Array.from(e.changedTouches)) {
-    return touch;
+  const l = points.length - 1;
+  if (points.length >= 3) {
+    const first = points[l];
+    const current = points[l - 1];
+    const xc = (first.x + current.x) / 2;
+    const yc = (first.y + current.y) / 2;
+    context.quadraticCurveTo(current.x, current.y, xc, yc);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(xc, yc);
+  } else {
+    const point = points[l];
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+    context.stroke();
   }
-  return null;
 }
 
 function handleStart(e, canvas) {
@@ -131,34 +120,23 @@ function handleStart(e, canvas) {
   canvas.style.zIndex = 1;
 
   canvas.addEventListener('touchstart', (e) => {
-    const touch = getTouch(e);
-    if (touch == null) return;
-
-    console.log('touchstart');
-
-    pendingPoints = [];
-    pendingPoints.push({ x: touch.clientX, y: touch.clientY });
-  }, { passive: true });
+    draw(e);
+  });
 
   canvas.addEventListener('touchmove', (e) => {
-    const touch = getTouch(e);
-    if (touch == null) return;
+    e.preventDefault();
+    draw(e);
+  });
 
-    console.log('touchmove');
-
-    pendingPoints.push({ x: touch.clientX, y: touch.clientY });
-    tick();
-  }, { passive: true });
-
-  canvas.addEventListener('touchend', (e) => {
-    const touch = getTouch(e);
-    if (touch == null) return;
-
-    console.log('touchend');
-
-    pendingPoints.push({ x: touch.clientX, y: touch.clientY });
-    tick();
-  }, { passive: true });
+  for (const event of ['touchend', 'touchleave']) {
+    canvas.addEventListener(event, () => {
+      context.closePath();
+      requestAnimationFrame(() => {
+        strokeHistories.push([...points]);
+        points = [];
+      });
+    });
+  }
 }
 
 function handleClear(e, canvas) {
